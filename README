@@ -2,6 +2,6 @@
 	
 	AUTHORS: Alexandre.
 	
-		img.c: 	Prend en argument une image au format bmp et affiche la binarisation \n
-						de cette dernière. Renvoie une erreur s'il n'y a pas d'arguments et 
-						ne prend pas en compte une de potentiels autres arguments.
+		img.c: 	Prend en argument une image au format bmp et affiche la binarisation 
+		de cette dernière. Renvoie une erreur s'il n'y a pas d'arguments et 
+		ne prend pas en compte une de potentiels autres arguments.
