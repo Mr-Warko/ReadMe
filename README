@@ -2,6 +2,18 @@
 	
 	AUTHORS: Alexandre.
 	
-		img.c: 	Prend en argument une image au format bmp et affiche la binarisation 
+		img.c:  Prend en argument une image au format bmp et affiche la binarisation
 		de cette dernière. Renvoie une erreur s'il n'y a pas d'arguments et 
 		ne prend pas en compte une de potentiels autres arguments.
+
+2e update: 2016-10-05
+
+	AUTHORS: Alexanre.
+		
+		img.c:  -Compression du code et mini amélioration du visu. 
+		        
+		        -La fonction renvoie une erreur si elle a + ou - de 1 argument.
+		        
+		        -Ajout de parcours en profondeur pour la segmentation. Coloration en
+		        rouge pour des bits noirs pour vérifier qu'ils sont bien parcourus.
+		        Fonctionne sans soucis.
