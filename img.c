@@ -7,6 +7,10 @@
 /* Le tout effectue un binarize (supprime les couleurs) sur une image au format
 	 bmp donnée en argument. */
 
+/*======================================*/
+/*============obtenirPixel==============*/
+/*======================================*/
+
 Uint32 obtenirPixel(SDL_Surface *surface, int x, int y)
 {
 	/*nbOctetsParPixel représente le nombre d'octets utilisés pour stocker un 
@@ -42,6 +46,10 @@ Uint32 obtenirPixel(SDL_Surface *surface, int x, int y)
 					return 0; 
 	}
 }
+
+/*======================================*/
+/*============definirPixel==============*/
+/*======================================*/
 
 
 void definirPixel(SDL_Surface *surface,	int x, int y, Uint32 pixel)
@@ -82,10 +90,143 @@ void definirPixel(SDL_Surface *surface,	int x, int y, Uint32 pixel)
 	}
 }
 
+/*======================================*/
+/*=============grayScale================*/
+/*======================================*/
+
+
 Uint8 grayscale(Uint8 r, Uint8 g, Uint8 b)
 {
 	return (r + g + b)/3;
 }
+
+/*======================================*/
+/*==============Binarize================*/
+/*======================================*/
+
+void binarize(SDL_Surface *surface){
+
+	Uint32 pixel;
+	Uint8 r,g,b,a;
+	int x,y;
+
+	for(y = 0; y < surface-> h; y++)
+	{
+		for(x = 0; x < surface -> w; x++)
+		{
+			pixel = obtenirPixel(surface, x,y);
+			SDL_GetRGBA(pixel, surface->format, &r, &g, &b, &a);
+			
+			Uint8 gray = grayscale(r,g,b);
+			if(gray <= 127)
+			{
+				r = 0;
+				g = 0;
+				b = 0;
+			}
+			else
+			{
+				r = 255;
+				g = 255;
+				b = 255;
+			}
+
+			pixel = SDL_MapRGBA(surface->format, r, g, b, a);
+			definirPixel(surface, x, y, pixel);
+
+		}
+	}
+
+}
+
+/*======================================*/
+/*============dfs_surface===============*/
+/*======================================*/
+
+
+void dfs_surface(SDL_Surface *surface, int x, int y, Uint8 mark){
+
+	Uint32 pixel;
+	Uint8 r,g,b,a;
+	
+	pixel = obtenirPixel(surface, x,y);
+	SDL_GetRGBA(pixel, surface->format, &r, &g, &b, &a);
+
+	r = mark;
+	g = 100;
+	b = 100;
+
+	pixel = SDL_MapRGBA(surface->format, r, g, b, a);
+	definirPixel(surface, x, y, pixel);
+	
+	if((0 <= x && x < surface-> w) && (0 <= y && y < surface-> h)){
+		/*Left*/
+		if(x > 0){
+	
+		pixel = obtenirPixel(surface, x-1,y);
+		SDL_GetRGBA(pixel, surface->format, &r, &g, &b, &a);
+		
+		if(r == 0)
+			 dfs_surface(surface, x-1, y, mark);
+		}
+		/*Right*/
+		if(x < (surface-> w)-1){
+			
+		pixel = obtenirPixel(surface, x+1,y);
+		SDL_GetRGBA(pixel, surface->format, &r, &g, &b, &a);
+		
+		if(r == 0)
+			 dfs_surface(surface, x+1, y, mark);
+		}
+		/*Top*/
+		if(y > 0){
+		
+		pixel = obtenirPixel(surface, x,y-1);
+		SDL_GetRGBA(pixel, surface->format, &r, &g, &b, &a);
+		
+		if(r == 0)
+			 dfs_surface(surface, x, y-1, mark);
+	
+		}
+		/*Bot*/
+		if(y < (surface-> h)-1){
+			
+		pixel = obtenirPixel(surface, x,y+1);
+		SDL_GetRGBA(pixel, surface->format, &r, &g, &b, &a);
+		
+		if(r == 0)
+			 dfs_surface(surface, x, y+1, mark);
+		}
+		
+	}
+}
+
+/*======================================*/
+/*=============segmentation=============*/
+/*======================================*/
+
+void segmentation(SDL_Surface *surface, Uint8 mark){
+
+	Uint32 pixel;	
+	Uint8 r,g,b,a;
+	int x;
+	int y;
+	
+	for(y = 0; y < surface-> h; y++){
+		for(x = 0; x < surface -> w; x++){
+
+		pixel = obtenirPixel(surface, x,y);
+		SDL_GetRGBA(pixel, surface->format, &r, &g, &b, &a);
+	
+		if(r == 0)
+			dfs_surface(surface, x, y, mark);
+		}
+	}
+}
+
+/*======================================*/
+/*================main==================*/
+/*======================================*/
 
 
 int main(int argc, char *argv[])
@@ -130,34 +271,15 @@ int main(int argc, char *argv[])
 	
 	SDL_LockSurface(surface);	
 	
-	for(y = 0; y < surface-> h; y++)
-	{
-		for(x = 0; x < surface -> w; x++)
-		{
-			pixel = obtenirPixel(surface, x,y);
-			SDL_GetRGBA(pixel, surface->format, &r, &g, &b, &a);
-			
-			Uint8 gray = grayscale(r,g,b);
-			if(gray <= 127)
-			{
-				r = 0;
-				g = 0;
-				b = 0;
-			}
-			else
-			{
-				r = 255;
-				g = 255;
-				b = 255;
-			}
-
-			pixel = SDL_MapRGBA(surface->format, r, g, b, a);
-			definirPixel(surface, x, y, pixel);
-
-			SDL_UnlockSurface(surface);
-		}
-	}
+	binarize(surface);
 	
+	SDL_UnlockSurface(surface);
+	SDL_LockSurface(surface);
+
+	segmentation(surface, 255);
+
+	SDL_UnlockSurface(surface);
+
 	texture = SDL_CreateTextureFromSurface(renderer, surface);
 
 	SDL_FreeSurface(surface);
