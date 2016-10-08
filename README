@@ -8,7 +8,7 @@
 
 2e update: 2016-10-05
 
-	AUTHORS: Alexanre.
+	AUTHORS: Alexandre.
 		
 		img.c:  -Compression du code et mini amélioration du visu. 
 		        
@@ -17,3 +17,16 @@
 		        -Ajout de parcours en profondeur pour la segmentation. Coloration en
 		        rouge pour des bits noirs pour vérifier qu'ils sont bien parcourus.
 		        Fonctionne sans soucis.
+
+3e update: 2016-10-08
+	AUTHORS: Alexandre.
+		
+		img.c: -Adaptation du code en SDL 1.2. J'ai utilisé les fonctions fournies 
+			par Marwann. (C'est plus joulie et tout le monde comprend comme ça.)
+
+
+		Dossier: -Ajout d'une image de bmp que vous pouvez utiliser pour les tests.
+			 -Ajout des pixels operations pour éviter de surcharger le code
+		          principal.
+
+		Makefile: Maj du makefile pour qu'il marche avec SDL et non plus SDL2.
