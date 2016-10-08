@@ -1,94 +1,78 @@
-#include<stdlib.h>
-#include<stdio.h>
-#include<string.h>
+#include <err.h>
 
-#include "SDL.h"
+#include "SDL/SDL.h"
+#include "SDL/SDL_image.h"
+#include "pixel_operations.c"
 
 /* Le tout effectue un binarize (supprime les couleurs) sur une image au format
 	 bmp donnée en argument. */
 
+
+
 /*======================================*/
-/*============obtenirPixel==============*/
+/*==============Utilitaire==============*/
 /*======================================*/
 
-Uint32 obtenirPixel(SDL_Surface *surface, int x, int y)
-{
-	/*nbOctetsParPixel représente le nombre d'octets utilisés pour stocker un 
-	pixel.
-	En multipliant ce nombre d'octets par 8 (un octet = 8 bits), on obtient 
-	la profondeur de couleur de l'image : 8, 16, 24 ou 32 bits.*/
-	
-	int nbOctetsParPixel = surface->format->BytesPerPixel;
 
-	/* Ici p est l'adresse du pixel que l'on veut connaitre */
-	/*surface->pixels contient l'adresse du premier pixel de l'image*/
-	
-	Uint8 *p = (Uint8 *)surface->pixels 
-						 + y * surface->pitch + x * nbOctetsParPixel;
-
-	/*Gestion différente suivant le nombre d'octets par pixel de l'image*/
-	switch(nbOctetsParPixel)
-	{
-			case 1:
-					return *p;
-			case 2:
-					return *(Uint16 *)p;
-			case 3:
-					/*Suivant l'architecture de la machine*/
-					if(SDL_BYTEORDER == SDL_BIG_ENDIAN)
-							return p[0] << 16 | p[1] << 8 | p[2];
-					else
-							return p[0] | p[1] << 8 | p[2] << 16;
-			case 4:
-					return *(Uint32 *)p;
-			/*Ne devrait pas arriver, mais évite les erreurs*/
-			default:
-					return 0; 
-	}
+void wait_for_keypressed(void) {
+  SDL_Event             event;
+  // Infinite loop, waiting for event
+  for (;;) {
+    // Take an event
+    SDL_PollEvent( &event );
+    // Switch on event type
+    switch (event.type) {
+    // Someone pressed a key -> leave the function
+    case SDL_KEYDOWN: return;
+    default: break;
+    }
+  // Loop until we got the expected event
+  }
 }
 
-/*======================================*/
-/*============definirPixel==============*/
-/*======================================*/
-
-
-void definirPixel(SDL_Surface *surface,	int x, int y, Uint32 pixel)
-{
-	int nbOctetsParPixel = surface->format->BytesPerPixel;
-	
-	Uint8 *p = (Uint8 *)surface->pixels 
-						 + y * surface->pitch + x * nbOctetsParPixel;
-	
-	switch(nbOctetsParPixel)
-	{
-		case 1:
-			*p = pixel;
-			break;
-
-		case 2:
-			*(Uint16 *)p	= pixel;
-			break;
-
-		case 3:
-			if(SDL_BYTEORDER == SDL_BIG_ENDIAN)
-			{
-				p[0] = (pixel >> 16) & 0xff;
-				p[1] = (pixel >> 8) & 0xff;
-				p[2] = pixel & 0xff;
-			}
-			else
-			{
-				p[0] = pixel & 0xff;
-				p[1] = (pixel >> 8) & 0xff;
-				p[2] = (pixel >> 16) & 0xff;
-			}
-			break;
-
-			case 4:
-				*(Uint32 *)p = pixel;
-				break;
-	}
+void init_sdl(void) {
+  // Init only the video part
+  if( SDL_Init(SDL_INIT_VIDEO)==-1 ) {
+    // If it fails, die with an error message
+    errx(1,"Could not initialize SDL: %s.\n", SDL_GetError());
+  }
+  // We don't really need a function for that ...
 }
+
+SDL_Surface* load_image(char *path) {
+  SDL_Surface          *img;
+  // Load an image using SDL_image with format detection
+  img = IMG_Load(path);
+  if (!img)
+    // If it fails, die with an error message
+    errx(3, "can't load %s: %s", path, IMG_GetError());
+  return img;
+}
+
+SDL_Surface* display_image(SDL_Surface *img) {
+  SDL_Surface          *screen;
+  // Set the window to the same size as the image
+  screen = SDL_SetVideoMode(img->w, img->h, 0, SDL_SWSURFACE|SDL_ANYFORMAT);
+  if ( screen == NULL ) {
+    // error management
+    errx(1, "Couldn't set %dx%d video mode: %s\n",
+         img->w, img->h, SDL_GetError());
+  }
+ 
+  /* Blit onto the screen surface */
+  if(SDL_BlitSurface(img, NULL, screen, NULL) < 0)
+    warnx("BlitSurface error: %s\n", SDL_GetError());
+ 
+  // Update the screen
+  SDL_UpdateRect(screen, 0, 0, img->w, img->h);
+ 
+  // wait for a key
+  wait_for_keypressed();
+ 
+  // return the screen for further uses
+  return screen;
+}
+
 
 /*======================================*/
 /*=============grayScale================*/
@@ -114,7 +98,7 @@ void binarize(SDL_Surface *surface){
 	{
 		for(x = 0; x < surface -> w; x++)
 		{
-			pixel = obtenirPixel(surface, x,y);
+			pixel = getpixel(surface, x,y);
 			SDL_GetRGBA(pixel, surface->format, &r, &g, &b, &a);
 			
 			Uint8 gray = grayscale(r,g,b);
@@ -132,7 +116,7 @@ void binarize(SDL_Surface *surface){
 			}
 
 			pixel = SDL_MapRGBA(surface->format, r, g, b, a);
-			definirPixel(surface, x, y, pixel);
+			putpixel(surface, x, y, pixel);
 
 		}
 	}
@@ -149,7 +133,7 @@ void dfs_surface(SDL_Surface *surface, int x, int y, Uint8 mark){
 	Uint32 pixel;
 	Uint8 r,g,b,a;
 	
-	pixel = obtenirPixel(surface, x,y);
+	pixel = getpixel(surface, x,y);
 	SDL_GetRGBA(pixel, surface->format, &r, &g, &b, &a);
 
 	r = mark;
@@ -157,13 +141,13 @@ void dfs_surface(SDL_Surface *surface, int x, int y, Uint8 mark){
 	b = 100;
 
 	pixel = SDL_MapRGBA(surface->format, r, g, b, a);
-	definirPixel(surface, x, y, pixel);
+	putpixel(surface, x, y, pixel);
 	
 	if((0 <= x && x < surface-> w) && (0 <= y && y < surface-> h)){
 		/*Left*/
 		if(x > 0){
 	
-		pixel = obtenirPixel(surface, x-1,y);
+		pixel = getpixel(surface, x-1,y);
 		SDL_GetRGBA(pixel, surface->format, &r, &g, &b, &a);
 		
 		if(r == 0)
@@ -172,7 +156,7 @@ void dfs_surface(SDL_Surface *surface, int x, int y, Uint8 mark){
 		/*Right*/
 		if(x < (surface-> w)-1){
 			
-		pixel = obtenirPixel(surface, x+1,y);
+		pixel = getpixel(surface, x+1,y);
 		SDL_GetRGBA(pixel, surface->format, &r, &g, &b, &a);
 		
 		if(r == 0)
@@ -181,7 +165,7 @@ void dfs_surface(SDL_Surface *surface, int x, int y, Uint8 mark){
 		/*Top*/
 		if(y > 0){
 		
-		pixel = obtenirPixel(surface, x,y-1);
+		pixel = getpixel(surface, x,y-1);
 		SDL_GetRGBA(pixel, surface->format, &r, &g, &b, &a);
 		
 		if(r == 0)
@@ -191,7 +175,7 @@ void dfs_surface(SDL_Surface *surface, int x, int y, Uint8 mark){
 		/*Bot*/
 		if(y < (surface-> h)-1){
 			
-		pixel = obtenirPixel(surface, x,y+1);
+		pixel = getpixel(surface, x,y+1);
 		SDL_GetRGBA(pixel, surface->format, &r, &g, &b, &a);
 		
 		if(r == 0)
@@ -215,7 +199,7 @@ void segmentation(SDL_Surface *surface, Uint8 mark){
 	for(y = 0; y < surface-> h; y++){
 		for(x = 0; x < surface -> w; x++){
 
-		pixel = obtenirPixel(surface, x,y);
+		pixel = getpixel(surface, x,y);
 		SDL_GetRGBA(pixel, surface->format, &r, &g, &b, &a);
 	
 		if(r == 0)
@@ -238,67 +222,30 @@ int main(int argc, char *argv[])
 
 	char *file = argv[1];
 	
-	SDL_Window *window;
-	SDL_Renderer *renderer;
 	SDL_Surface *surface;
-	SDL_Texture *texture;
-	SDL_Event event;
-
-	Uint32 pixel;
-	Uint8 r,g,b,a;
-	int x,y;
-	
+		
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s",
-			SDL_GetError());
-			return 3;
+		printf("Erreur d'initialisation.");
+		return 3;
 	}
 
-	if (SDL_CreateWindowAndRenderer(320, 240, SDL_WINDOW_RESIZABLE, &window, 
-																	&renderer)) {
-			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, 
-									 "Couldn't create window and renderer: %s", SDL_GetError());
-			return 3;
-	}
-
-	surface = SDL_LoadBMP(file);
-	
-	if (!surface) {
-			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, 
-									 "Couldn't create surface from image: %s", SDL_GetError());
-			return 3;
+	surface = load_image(file);
+	if (!surface){
+		printf("Erreur de chargement dans l'image.");
+		return 3;
 	}
 	
 	SDL_LockSurface(surface);	
 	
 	binarize(surface);
 	
-	SDL_UnlockSurface(surface);
-	SDL_LockSurface(surface);
-
 	segmentation(surface, 255);
 
 	SDL_UnlockSurface(surface);
 
-	texture = SDL_CreateTextureFromSurface(renderer, surface);
+	display_image(surface);
 
 	SDL_FreeSurface(surface);
-
-	while (1) 
- {
-			SDL_PollEvent(&event);
-			if (event.type == SDL_QUIT) {
-					break;
-			}
-			SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
-			SDL_RenderClear(renderer);
-			SDL_RenderCopy(renderer, texture, NULL, NULL);
-			SDL_RenderPresent(renderer);
-	}
-	
-	SDL_DestroyTexture(texture);
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(window);
 
 	SDL_Quit();
 

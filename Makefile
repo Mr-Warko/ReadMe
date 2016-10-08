@@ -1,13 +1,21 @@
-# EPITA Practical Programming S3 - 2016/2017
-# # Makefile
-# # Marwan Burelle
-#  
-#  # Compilers and options
+## Simple SDL mini code
+ 
 CC=gcc
-CPPFLAGS= -MMD
-CFLAGS= -Wall -Wextra -std=c99 -pedantic -O2
+ 
+CPPFLAGS= `pkg-config --cflags sdl`
+CFLAGS= -Wall -Wextra  -std=c99 -O2
 LDFLAGS=
-LDLIBS=`sdl2-config --cflags --libs`
-
-
+LDLIBS= `pkg-config --libs sdl` -lSDL_image
+ 
+SRC= 
+OBJ= ${SRC:.c=.o}
+ 
+all: main
+ 
+main: ${OBJ}
+ 
+clean:
+	rm -f *~ *.o
+	rm -f main
+ 
 # END
