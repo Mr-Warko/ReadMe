@@ -22,11 +22,12 @@
 	AUTHORS: Alexandre.
 		
 		img.c: -Adaptation du code en SDL 1.2. J'ai utilisé les fonctions fournies 
-			par Marwann. (C'est plus joulie et tout le monde comprend comme ça.)
-
+      			par Marwann. (C'est plus joulie et tout le monde comprend comme ça.)
+		       -MAJ de la segmentation, les caractères sont détectés et mis dans un
+		        rectangle bleu.
 
 		Dossier: -Ajout d'une image de bmp que vous pouvez utiliser pour les tests.
-			 -Ajout des pixels operations pour éviter de surcharger le code
+		       	 -Ajout des pixels operations pour éviter de surcharger le code
 		          principal.
 
 		Makefile: Maj du makefile pour qu'il marche avec SDL et non plus SDL2.

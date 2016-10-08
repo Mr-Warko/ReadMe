@@ -23,7 +23,7 @@ void wait_for_keypressed(void) {
     // Switch on event type
     switch (event.type) {
     // Someone pressed a key -> leave the function
-    case SDL_KEYDOWN: return;
+    case SDL_MOUSEBUTTONUP: return;
     default: break;
     }
   // Loop until we got the expected event
@@ -124,15 +124,108 @@ void binarize(SDL_Surface *surface){
 }
 
 /*======================================*/
+/*==============test_dfs================*/
+/*======================================*/
+
+int test_dfs(SDL_Surface *surface, int x, int y, Uint8 colorTest){
+	
+	Uint32 pixel;
+	Uint8 r,g,b,a;
+	
+	pixel = getpixel(surface, x,y);
+	SDL_GetRGBA(pixel, surface->format, &r, &g, &b, &a);
+
+	return (r == colorTest)? 1: 0;
+}
+
+/*======================================*/
+/*==========actualize_cooRect===========*/
+/*======================================*/
+
+void actualize_cooRect(int cooRect[], int x, int y){
+	if (x < *(cooRect))
+		*(cooRect) = x;
+	else if (x > *(cooRect + 2))
+		*(cooRect + 2) = x;
+
+	if (y < *(cooRect + 1))
+		*(cooRect + 1) = y;
+	else if(y > *(cooRect + 3))
+		*(cooRect + 3) = y;
+}
+
+/*======================================*/
+/*=============trace_rect===============*/
+/*======================================*/
+
+void trace_rect(SDL_Surface *surface, int cooRect[]){
+
+	Uint32 pixel;
+	Uint8 r,g,b,a;
+	int xMin = cooRect[0]; int yMin = cooRect[1];
+	int xMax = cooRect[2]; int yMax = cooRect[3];
+	/*LEFT and RIGHT*/
+	for	(int y = yMin; y < yMax; ++y){
+		/*LEFT*/
+		pixel = getpixel(surface, xMin, y);
+		SDL_GetRGBA(pixel, surface->format, &r, &g, &b, &a);
+
+		r = 100;
+		g = 100;
+		b = 255;
+
+		pixel = SDL_MapRGBA(surface->format, r, g, b, a);
+		putpixel(surface, xMin, y, pixel);
+		
+		/*RIGHT*/
+		pixel = getpixel(surface, xMax, y);
+		SDL_GetRGBA(pixel, surface->format, &r, &g, &b, &a);
+
+		r = 100;
+		g = 100;
+		b = 255;
+
+		pixel = SDL_MapRGBA(surface->format, r, g, b, a);
+		putpixel(surface, xMax, y, pixel);
+	}
+	/*TOP and BOT*/
+	for (int x = xMin; x < xMax; ++x){
+		/*TOP*/
+		pixel = getpixel(surface, x,yMin);
+		SDL_GetRGBA(pixel, surface->format, &r, &g, &b, &a);
+
+		r = 100;
+		g = 100;
+		b = 255;
+
+		pixel = SDL_MapRGBA(surface->format, r, g, b, a);
+		putpixel(surface, x, yMin, pixel);
+		
+		/*BOT*/
+		pixel = getpixel(surface, x,yMin);
+		SDL_GetRGBA(pixel, surface->format, &r, &g, &b, &a);
+
+		r = 100;
+		g = 100;
+		b = 255;
+
+		pixel = SDL_MapRGBA(surface->format, r, g, b, a);
+		putpixel(surface, x, yMax, pixel);
+	}
+}
+
+/*======================================*/
 /*============dfs_surface===============*/
 /*======================================*/
 
 
-void dfs_surface(SDL_Surface *surface, int x, int y, Uint8 mark){
+void dfs_surface(SDL_Surface *surface, int x, int y, Uint8 mark, int cooRect[]){
 
 	Uint32 pixel;
 	Uint8 r,g,b,a;
-	
+
+	actualize_cooRect(cooRect, x, y);
+		
 	pixel = getpixel(surface, x,y);
 	SDL_GetRGBA(pixel, surface->format, &r, &g, &b, &a);
 
@@ -145,42 +238,24 @@ void dfs_surface(SDL_Surface *surface, int x, int y, Uint8 mark){
 	
 	if((0 <= x && x < surface-> w) && (0 <= y && y < surface-> h)){
 		/*Left*/
-		if(x > 0){
-	
-		pixel = getpixel(surface, x-1,y);
-		SDL_GetRGBA(pixel, surface->format, &r, &g, &b, &a);
-		
-		if(r == 0)
-			 dfs_surface(surface, x-1, y, mark);
-		}
+		if(x > 0)
+				if(test_dfs(surface,x-1,y,0))
+				 dfs_surface(surface, x-1, y, mark,cooRect);
+
 		/*Right*/
-		if(x < (surface-> w)-1){
-			
-		pixel = getpixel(surface, x+1,y);
-		SDL_GetRGBA(pixel, surface->format, &r, &g, &b, &a);
+		if(x < (surface-> w)-1)
+			if(test_dfs(surface,x+1,y,0))
+				 dfs_surface(surface, x+1, y, mark,cooRect);
 		
-		if(r == 0)
-			 dfs_surface(surface, x+1, y, mark);
-		}
 		/*Top*/
-		if(y > 0){
-		
-		pixel = getpixel(surface, x,y-1);
-		SDL_GetRGBA(pixel, surface->format, &r, &g, &b, &a);
-		
-		if(r == 0)
-			 dfs_surface(surface, x, y-1, mark);
-	
-		}
+		if(y > 0)
+			if(test_dfs(surface,x,y-1,0))
+				 dfs_surface(surface, x, y-1, mark,cooRect);
+
 		/*Bot*/
-		if(y < (surface-> h)-1){
-			
-		pixel = getpixel(surface, x,y+1);
-		SDL_GetRGBA(pixel, surface->format, &r, &g, &b, &a);
-		
-		if(r == 0)
-			 dfs_surface(surface, x, y+1, mark);
-		}
+		if(y < (surface-> h)-1)
+			if(test_dfs(surface,x,y+1,0))
+				 dfs_surface(surface, x, y+1, mark,cooRect);
 		
 	}
 }
@@ -191,19 +266,21 @@ void dfs_surface(SDL_Surface *surface, int x, int y, Uint8 mark){
 
 void segmentation(SDL_Surface *surface, Uint8 mark){
 
-	Uint32 pixel;	
-	Uint8 r,g,b,a;
 	int x;
 	int y;
-	
+
+
 	for(y = 0; y < surface-> h; y++){
 		for(x = 0; x < surface -> w; x++){
 
-		pixel = getpixel(surface, x,y);
-		SDL_GetRGBA(pixel, surface->format, &r, &g, &b, &a);
-	
-		if(r == 0)
-			dfs_surface(surface, x, y, mark);
+			if(test_dfs(surface,x,y,0)){
+				
+				/* {xMin, yMin, xMax, yMax} */
+				int cooRect[] = {x,y,x,y};
+				dfs_surface(surface, x, y, mark, cooRect);
+				trace_rect(surface,cooRect);
+				
+			}
 		}
 	}
 }
@@ -224,16 +301,9 @@ int main(int argc, char *argv[])
 	
 	SDL_Surface *surface;
 		
-	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-		printf("Erreur d'initialisation.");
-		return 3;
-	}
+	SDL_Init(SDL_INIT_VIDEO);
 
 	surface = load_image(file);
-	if (!surface){
-		printf("Erreur de chargement dans l'image.");
-		return 3;
-	}
 	
 	SDL_LockSurface(surface);	
 	
