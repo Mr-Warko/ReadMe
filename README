@@ -32,10 +32,20 @@
 
 		Makefile: Maj du makefile pour qu'il marche avec SDL et non plus SDL2.
 
+4e update: 2016-11-08
+	AUTHORS: Maria
 
-	update:	2016-10-09
+		interface.c: On tombe maintenant sur le menu et non sur le dialog chooser 
+		             quand on lance le programme. J'espere que tu sois content 
+		             Bernard.
+			           PS:Pb quand plus d'un bouton quand on revient sur le menu 
+		             de depart :'(
+
+5e update:	2016-10-09
 	AUTHORS: Alexandre.
 
 	img.c:	-Ajout de la détection des lignes.
 
 	Dossier: -Ajout d'images de test.
+
+
