@@ -31,3 +31,11 @@
 		          principal.
 
 		Makefile: Maj du makefile pour qu'il marche avec SDL et non plus SDL2.
+
+
+	update:	2016-10-09
+	AUTHORS: Alexandre.
+
+	img.c:	-Ajout de la détection des lignes.
+
+	Dossier: -Ajout d'images de test.
