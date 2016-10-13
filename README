@@ -53,6 +53,8 @@
 
 	img.c: 	-Ligne mieux segmentées -> Détection des lignes terminée.
 
+	l_List.h: -Création de la classe List et de ses opérations associées.
+
 	Dossier: -Ajout d'une image donnée sur le site de Marwan.
 					 -Création d'un dossier contenant toutes les images.
 					
