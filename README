@@ -32,7 +32,7 @@
 
 		Makefile: Maj du makefile pour qu'il marche avec SDL et non plus SDL2.
 
-4e update: 2016-11-08
+4e update: 2016-10-08
 	AUTHORS: Maria
 
 		interface.c: On tombe maintenant sur le menu et non sur le dialog chooser 
@@ -48,4 +48,11 @@
 
 	Dossier: -Ajout d'images de test.
 
+6e update:	2016-10-13
+	AUTHORS: Alexandre.
 
+	img.c: 	-Ligne mieux segmentées -> Détection des lignes terminée.
+
+	Dossier: -Ajout d'une image donnée sur le site de Marwan.
+					 -Création d'un dossier contenant toutes les images.
+					
