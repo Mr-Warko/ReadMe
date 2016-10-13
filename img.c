@@ -268,19 +268,31 @@ void segmentation(SDL_Surface *surface, Uint8 mark){
 
 	int x;
 	int y;
+	int new_verrou = 0;
+	int old_verrou = 0;
+	
+	for(y = 0; y < surface-> h; ++y){
+		old_verrou = new_verrou; new_verrou = 0;
+		for(x = 0; x < surface -> w; ++x){
+			
+			Uint32 pixel;
+			Uint8 r,g,b,a;
+			pixel = getpixel(surface, x,y);
+			SDL_GetRGBA(pixel, surface->format, &r, &g, &b, &a);
 
-
-	for(y = 0; y < surface-> h; y++){
-		for(x = 0; x < surface -> w; x++){
-
+			if(g != 255){
+				old_verrou = new_verrou; new_verrou = 1;
+			}
 			if(test_dfs(surface,x,y,0)){
-				
 				/* {xMin, yMin, xMax, yMax} */
-				int cooRect[] = {x,y,x,y};
+				int cooRect[] = {x,y,x,y};			
 				dfs_surface(surface, x, y, mark, cooRect);
 				trace_rect(surface,cooRect);
-				
 			}
+		}
+		if ((old_verrou && !new_verrou) || (new_verrou && !old_verrou)){
+			int cooLigne[] = {0,y,(surface -> w)-1,y};
+			trace_rect(surface,cooLigne);
 		}
 	}
 }
