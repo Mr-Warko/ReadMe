@@ -63,3 +63,11 @@
 	AUTHORS: Maria
 
 	interface.c: probleme du boutton disparu ok					
+
+8e update: 2016-10-16
+	AUTHORS: Alexandre.
+
+	img.c: -MAJ de la classe liste. Ajout de la gestion des listes de caractères 
+	        et des listes de listes de caractères.
+				 -Mise en place des sorted liste (ne marche pas encore).
+

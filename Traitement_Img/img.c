@@ -3,7 +3,7 @@
 #include "SDL/SDL.h"
 #include "SDL/SDL_image.h"
 #include "pixel_operations.c"
-
+#include "List.h"
 /* Le tout effectue un binarize (supprime les couleurs) sur une image au format
 	 bmp donnée en argument. */
 
@@ -295,8 +295,11 @@ void segmentation(SDL_Surface *surface, Uint8 mark){
 	int old_verrou = 0;
 	Uint32 pixel;
 	Uint8 r,g,b,a;
-
+	int i = 0; //TEST	
+	
 	int cooLine[] = {-1,0,0,0}; //Le -1 sert de marqueur pour actualize_cooLine.
+	struct list *lines = empty_list(); //Création liste de lignes.
+	struct list *line = empty_list(); //Création list des caractères
 	for(y = 0; y < surface-> h; ++y){
 		old_verrou = new_verrou; new_verrou = 0;
 		for(x = 0; x < surface -> w; ++x){
@@ -309,8 +312,13 @@ void segmentation(SDL_Surface *surface, Uint8 mark){
 			}
 			if(test_dfs(surface,x,y,0)){
 				/* {xMin, yMin, xMax, yMax} */
-				int cooChar[] = {x,y,x,y};			
+				//int cooChar[] = {x,y,x,y};			
+				int *cooChar = malloc(4 * sizeof(int));
+				*cooChar = x; *(cooChar+1) =y; *(cooChar+2) = x; *(cooChar+3) = y;
 				dfs_surface(surface, x, y, mark, cooChar);
+//				line = list_append(line, cooChar); //append les coo du char dans la list
+				line = insert(line,cooChar);
+
 				actualize_cooLine(cooLine, cooChar);
 				y = *(cooChar + 1); //Optimisation de la boucle.
 				trace_rect(surface,cooChar);
@@ -318,10 +326,19 @@ void segmentation(SDL_Surface *surface, Uint8 mark){
 		}
 		//old verrou $$ !new_verrou => fin de ligne
 		if (old_verrou && !new_verrou){
-			trace_rect(surface,cooLine);
+			trace_rect(surface,cooLine); //Trace la ligne
+			
+			line = add(line,cooLine);//Met en 1e place les coo de la ligne.
+			int l = list_length(line);
+			printf("ligne numéro: %i| taille: %i \n",i,l);
+			print_list(line);
+			i++;
+			lines = list_append(lines,&line);//Append la ligne dans la list de lignes
 			*cooLine = -1;
+			line = empty_list();
 		}
 	}
+	lines = list_remove_first(lines); //Supprime le 1e elt inutil.
 }
 
 /*======================================*/
