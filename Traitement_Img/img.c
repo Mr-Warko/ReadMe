@@ -8,7 +8,6 @@
 	 bmp donnée en argument. */
 
 
-
 /*======================================*/
 /*==============Utilitaire==============*/
 /*======================================*/
@@ -312,33 +311,33 @@ void segmentation(SDL_Surface *surface, Uint8 mark){
 			}
 			if(test_dfs(surface,x,y,0)){
 				/* {xMin, yMin, xMax, yMax} */
-				//int cooChar[] = {x,y,x,y};			
 				int *cooChar = malloc(4 * sizeof(int));
 				*cooChar = x; *(cooChar+1) =y; *(cooChar+2) = x; *(cooChar+3) = y;
 				dfs_surface(surface, x, y, mark, cooChar);
-//				line = list_append(line, cooChar); //append les coo du char dans la list
-				line = insert(line,cooChar);
-
+				
+				line = insert(line,cooChar);//Ajout de cooChar dans la liste triée line.
 				actualize_cooLine(cooLine, cooChar);
 				y = *(cooChar + 1); //Optimisation de la boucle.
-				trace_rect(surface,cooChar);
 			}
 		}
 		//old verrou $$ !new_verrou => fin de ligne
 		if (old_verrou && !new_verrou){
-			trace_rect(surface,cooLine); //Trace la ligne
-			
 			line = add(line,cooLine);//Met en 1e place les coo de la ligne.
+
+			struct list *line2 = line;
+			for(;line2;line2 = line2->next)
+				trace_rect(surface,line2->value);
+			
 			int l = list_length(line);
-			printf("ligne numéro: %i| taille: %i \n",i,l);
+			printf("\nligne numéro: %i| taille: %i \n",i,l);
 			print_list(line);
 			i++;
-			lines = list_append(lines,&line);//Append la ligne dans la list de lignes
-			*cooLine = -1;
+			
+			lines = list_append(lines,line->value);//Append la ligne dans la list de lignes
+			*cooLine = -1;//marqueur pour actualize_cooLine.
 			line = empty_list();
 		}
 	}
-	lines = list_remove_first(lines); //Supprime le 1e elt inutil.
 }
 
 /*======================================*/

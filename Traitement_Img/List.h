@@ -99,7 +99,7 @@ struct list *insert(struct list *l,int *data){
 	else{
 		prev = NULL;
 		nextl = l;
-		while(nextl && nextl->value <= data){
+		while(nextl && *(nextl->value) <= *(data)){
 			prev = nextl;
 			nextl = nextl->next;
 		}

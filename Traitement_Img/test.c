@@ -17,8 +17,8 @@ int main(){
 	l = add(l,array2);
 	for(int i = 0; i < 6; ++i){
 		int *array = malloc(4*sizeof(int));
-		*array = 6;
-		*(array)-= i; *(array+1)=1; *(array+2)=2; *(array+3)=3;
+		*array = 0;
+		*(array) += i; *(array+1)=1; *(array+2)=2; *(array+3)=3;
 		l = insert(l,array);
 	}
 	print_list(l);
