@@ -89,7 +89,7 @@ struct list *list_append(struct list *list,int *data){
 	else
 		return NULL;
 }
-
+/*
 struct list *insert(struct list *l,int *data){
 	struct list *tmp, *prev, *nextl;
 	tmp = NULL;
@@ -118,27 +118,41 @@ struct list *insert(struct list *l,int *data){
 	}
 	return l;
 }
-/*
-struct list *insert(struct list *sl1, int *val)
-{	
-	struct list *sl = &sl1;
-	struct list *tmp = NULL;	
-	struct list *csl = sl;
-	struct list *elem = malloc(sizeof(struct list));
-	
-	if(!elem) exit(EXIT_FAILURE);
-	elem->value = val;
-	while(csl && *(csl->value) < *val)
-		{
-			 tmp = csl;
-			 csl = csl->next;
-		}
-	elem->next = csl;
-	if(tmp) tmp->next = elem;
-	else sl = elem;
-	return sl1;
-}
 */
+
+struct list *insert(struct list *l,int *data){
+	struct list *tmp, *prev, *nextl;
+	tmp = NULL;
+	tmp = add(tmp,data);
+	if(!l)
+		l = tmp;
+	else{
+		prev = NULL;
+		nextl = l;
+		while(nextl && *(nextl->value) <= *(data)){
+			prev = nextl;
+			nextl = nextl->next;
+		}
+		if(!nextl)
+			prev->next = tmp;
+		else{
+			if(*((nextl->value)+2) < *((tmp->value)+2)){
+				*(nextl->value) = *(tmp->value);
+				*((nextl->value)+2) = *((tmp->value)+2);
+				*((nextl->value)+3) = *((tmp->value)+3);
+			}
+			else if(prev){
+				tmp->next = prev->next;
+				prev->next = tmp;
+			}
+			else{
+				tmp->next = l;
+				l = tmp;
+			}
+		}
+	}
+	return l;
+}
 //altered the head
 void addin(struct list *l1, int *x){
 	struct list **l = &l1;
