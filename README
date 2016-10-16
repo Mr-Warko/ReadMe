@@ -67,7 +67,24 @@
 8e update: 2016-10-16
 	AUTHORS: Alexandre.
 
-	img.c: -MAJ de la classe liste. Ajout de la gestion des listes de caractères 
-	        et des listes de listes de caractères.
-				 -Mise en place des sorted liste (ne marche pas encore).
+	List.h: -MAJ de la classe liste. Changement du nom. Ajout de la 
+					 gestion des listes de caractères et des listes de listes 
+					 de caractères.
+				  -Mise en place des sorted liste (ne marche pas encore).
 
+9e update: 2016-10-16
+	AUTHORS: Alexandre.
+	
+	List.h: -MAJ de la classe liste: listes triées terminées.
+				  -La fonction "insert" permet d'ajouter de façon trié les coo d'un 
+				   caractère. De plus elle va détecter les caractères composés et les
+					 merge si besoin.
+	img.c:  -Permet de récupérer une ligne sous forme de liste des coo des 
+				   caractères. Ceux ci sont triés dans l'ordre d'apparition dans la
+					 liste.
+					-Récupère aussi la liste des lignes. Sous forme de liste des pointeurs
+					 pointant vers les coo des lignes. /!\ Cela implique que la liste des 
+					 caractère est perdu à chaque nouvelle ligne. Il faudra donc utiliser
+					 la reconnaissance des caractère à la fin de la détection des lignes.
+				  -Les coo des lignes et de leurs caractères est affichée dans la 
+					 console au moment de l'execution.

@@ -136,14 +136,19 @@ struct list *insert(struct list *l,int *data){
 		if(!nextl)
 			prev->next = tmp;
 		else{
-			if(*((nextl->value)+2) < *((tmp->value)+2)){
+			if(*((nextl->value)) < *((tmp->value)+2)){
 				*(nextl->value) = *(tmp->value);
 				*((nextl->value)+2) = *((tmp->value)+2);
 				*((nextl->value)+3) = *((tmp->value)+3);
 			}
 			else if(prev){
+				if(*((tmp->value)) > *((prev->value)) && 
+					 *((tmp->value)+2) < *((prev->value)+2))
+					*((prev->value)+3) = *((tmp->value)+3);
+				else{
 				tmp->next = prev->next;
 				prev->next = tmp;
+				}
 			}
 			else{
 				tmp->next = l;
