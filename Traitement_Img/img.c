@@ -1,5 +1,5 @@
 #include <err.h>
-
+#include <string.h>
 #include "SDL/SDL.h"
 #include "SDL/SDL_image.h"
 #include "pixel_operations.c"
@@ -72,6 +72,57 @@ SDL_Surface* display_image(SDL_Surface *img) {
   return screen;
 }
 
+/*======================================*/
+/*============savePartAsBmp=============*/
+/*======================================*/
+
+void savePartAsBmp(SDL_Surface *img, int *cooChar, char *file, Uint32 rmask
+									 ,Uint32 gmask, Uint32 bmask, Uint32 amask)
+{
+	SDL_Surface *surface;
+	Uint8 r,g,b;
+	Uint32 pixel;
+
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+    rmask = 0xff000000;
+    gmask = 0x00ff0000;
+    bmask = 0x0000ff00;
+    amask = 0x000000ff;
+#else
+    rmask = 0x000000ff;
+    gmask = 0x0000ff00;
+    bmask = 0x00ff0000;
+    amask = 0xff000000;
+#endif
+
+	size_t width = *(cooChar+2) - *cooChar;
+	size_t height = *(cooChar+3) - *(cooChar+1);
+	
+	surface = SDL_CreateRGBSurface(SDL_SWSURFACE,width,height,32,
+                                 rmask,gmask,bmask,amask);
+	if(!surface){
+		fprintf(stderr, "CreateRGBSurface failed: %s\n", SDL_GetError());
+		exit(1);
+	}
+	
+	for(size_t y = *(cooChar+1); y < *(cooChar+3); ++y){
+		for(size_t x = *cooChar; x < *(cooChar+2); ++x){
+			//printf("W: %lu | H: %lu | x: %lu | y: %lu\n",width,height,x,y);
+			pixel = getpixel(img, x,y);
+			SDL_GetRGB(pixel, img->format, &r, &g, &b);
+
+			pixel = SDL_MapRGB(surface->format, r, g, b);
+			putpixel(surface, x-(*cooChar), y-*(cooChar+1), pixel);
+		}
+	}
+
+	if(SDL_SaveBMP(surface, file) < 0){
+		fprintf(stderr, "SaveBMP failed: %s\n", SDL_GetError());
+		exit(1);
+	}
+	
+	SDL_FreeSurface(surface);
+}
 
 /*======================================*/
 /*=============grayScale================*/
@@ -292,9 +343,11 @@ void segmentation(SDL_Surface *surface, Uint8 mark){
 	int old_verrou = 0;
 	Uint32 pixel;
 	Uint8 r,g,b,a;
+//	size_t nbChar = 0;
 	
 	struct l_list *lines = empty_l_list(); //Création liste de lignes.
 	struct list *line = empty_list(); //Création list des caractères
+	
 	for(y = 0; y < surface-> h; ++y){
 		old_verrou = new_verrou; new_verrou = 0;
 		for(x = 0; x < surface -> w; ++x){
@@ -310,11 +363,17 @@ void segmentation(SDL_Surface *surface, Uint8 mark){
 				int *cooChar = malloc(4 * sizeof(int));//Alloue l'EM au caractère
 				*cooChar = x; *(cooChar+1) =y; *(cooChar+2) = x; *(cooChar+3) = y;
 				dfs_surface(surface, x, y, mark, cooChar);
-				
+/*			
+				char buf[50];
+				sprintf(buf,"Yolo/char%lu.bmp",nbChar);	
+				savePartAsBmp(surface,cooChar,buf,0,0,0,0);
+				nbChar++;
+*/
 				line = insert(line,cooChar);//Ajout de cooChar dans la liste triée line.
 				y = *(cooChar + 1); //Optimisation de la boucle.
 			}
 		}
+	
 		//old verrou $$ !new_verrou => fin de ligne
 		if (old_verrou && !new_verrou){
 			int *cooLine = malloc(4 * sizeof(int));//Alloue l'EM nécessaire à la ligne
@@ -333,12 +392,25 @@ void segmentation(SDL_Surface *surface, Uint8 mark){
 			line = empty_list();
 		}
 	}
+	/*
+	//Affichage des lignes et des coo des caractères.
 	int i = 0;
-	for(;lines; lines = lines->next){
+	for(;lines; lines = lines->next){ 
 		int l = list_length(lines->value);
 		printf("\nligne numéro: %i| taille: %i \n",i,l);
 		print_list(lines->value);
 		i++;
+	}*/
+	size_t charNb = 0;
+	for(;lines; lines = lines->next){
+		struct list *line = lines->value;
+		line = line->next;
+		for(;line;line = line->next){
+			char buf[50];
+			sprintf(buf,"Yolo/char%lu.bmp",charNb);	
+			savePartAsBmp(surface,line->value,buf,0,0,0,0);
+			charNb++;
+		}
 	}
 }
 
@@ -383,7 +455,7 @@ int main(int argc, char *argv[])
 	
 	SDL_Surface *surface;
 		
-	SDL_Init(SDL_INIT_VIDEO);
+	init_sdl();
 
 	surface = load_image(file);
 	
