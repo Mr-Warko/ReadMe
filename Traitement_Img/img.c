@@ -8,7 +8,6 @@
 	 bmp donnée en argument. */
 
 
-
 /*======================================*/
 /*==============Utilitaire==============*/
 /*======================================*/
@@ -138,29 +137,27 @@ int test_dfs(SDL_Surface *surface, int x, int y, Uint8 colorTest){
 	return (r == colorTest)? 1: 0;
 }
 
+
 /*======================================*/
-/*==========actualize_cooLine===========*/
+/*=============getCooLine===============*/
 /*======================================*/
 
-void actualize_cooLine(int cooLine[], int cooChar[]){
-	if (*cooLine == -1){
-		*cooLine = *cooChar;
-		*(cooLine + 1) = *(cooChar + 1);
-		*(cooLine + 2) = *(cooChar + 2);
-	}
-	else{
-		if (*(cooChar) < *(cooLine))
-			*(cooLine) = *(cooChar);
-		if (*(cooChar + 2) > *(cooLine + 2))
-			*(cooLine + 2) = *(cooChar + 2);
+void getCooLine(int *cooLine, struct list *l){
+	*cooLine = *(l->value);//Xmin
 
-		if (*(cooChar + 1) < *(cooLine + 1))
-			*(cooLine + 1) = *(cooChar + 1);
-		if (*(cooChar + 3) > *(cooLine + 3))
-			*(cooLine + 3) = *(cooChar + 3);
+	for(;l->next;l = l->next){
+		if(*((l->value)+1) < *(cooLine+1))//Ymin
+			*(cooLine+1) = *((l->value)+1);
+		if(*((l->value)+3) > *(cooLine+3))//Ymax
+			*(cooLine+3) = *((l->value)+3);
 	}
+	if(*((l->value)+1) < *(cooLine+1))//Ymin
+		*(cooLine+1) = *((l->value)+1);
+	if(*((l->value)+3) > *(cooLine+3))//Ymax
+		*(cooLine+3) = *((l->value)+3);
+	
+	*(cooLine+2) = *((l->value)+2);//Xmax
 }
-
 /*======================================*/
 /*==========actualize_cooChar===========*/
 /*======================================*/
@@ -295,10 +292,8 @@ void segmentation(SDL_Surface *surface, Uint8 mark){
 	int old_verrou = 0;
 	Uint32 pixel;
 	Uint8 r,g,b,a;
-	int i = 0; //TEST	
 	
-	int cooLine[] = {-1,0,0,0}; //Le -1 sert de marqueur pour actualize_cooLine.
-	struct list *lines = empty_list(); //Création liste de lignes.
+	struct l_list *lines = empty_l_list(); //Création liste de lignes.
 	struct list *line = empty_list(); //Création list des caractères
 	for(y = 0; y < surface-> h; ++y){
 		old_verrou = new_verrou; new_verrou = 0;
@@ -312,40 +307,71 @@ void segmentation(SDL_Surface *surface, Uint8 mark){
 			}
 			if(test_dfs(surface,x,y,0)){
 				/* {xMin, yMin, xMax, yMax} */
-				int *cooChar = malloc(4 * sizeof(int));
+				int *cooChar = malloc(4 * sizeof(int));//Alloue l'EM au caractère
 				*cooChar = x; *(cooChar+1) =y; *(cooChar+2) = x; *(cooChar+3) = y;
 				dfs_surface(surface, x, y, mark, cooChar);
 				
 				line = insert(line,cooChar);//Ajout de cooChar dans la liste triée line.
-				actualize_cooLine(cooLine, cooChar);
 				y = *(cooChar + 1); //Optimisation de la boucle.
 			}
 		}
 		//old verrou $$ !new_verrou => fin de ligne
 		if (old_verrou && !new_verrou){
+			int *cooLine = malloc(4 * sizeof(int));//Alloue l'EM nécessaire à la ligne
+			
+			for(int yolo = 0; yolo < 4; yolo++) //Besoin de qqc pour comparer
+				*(cooLine + yolo) = *((line->value)+yolo);
+			
+			getCooLine(cooLine,line);
 			line = add(line,cooLine);//Met en 1e place les coo de la ligne.
 
 			struct list *line2 = line;
 			for(;line2;line2 = line2->next)
 				trace_rect(surface,line2->value);
 			
-			int l = list_length(line);
-			printf("\nligne numéro: %i| taille: %i \n",i,l);
-			print_list(line);
-			i++;
-			
-			lines = list_append(lines,line->value);//Append la ligne dans la list de lignes
-			*cooLine = -1;//marqueur pour actualize_cooLine.
+			lines = l_list_append(lines,line);//Append la ligne dans la list de lignes
 			line = empty_list();
 		}
+	}
+	int i = 0;
+	for(;lines; lines = lines->next){
+		int l = list_length(lines->value);
+		printf("\nligne numéro: %i| taille: %i \n",i,l);
+		print_list(lines->value);
+		i++;
 	}
 }
 
 /*======================================*/
 /*================main==================*/
 /*======================================*/
+/*
+int call(char *file)
+{
+	SDL_Surface *surface;
+		
+	SDL_Init(SDL_INIT_VIDEO);
 
+	surface = load_image(file);
+	
+	SDL_LockSurface(surface);	
+	
+	binarize(surface);
+	
+	segmentation(surface, 255);
 
+	SDL_UnlockSurface(surface);
+
+	display_image(surface);
+
+	SDL_FreeSurface(surface);
+
+	SDL_Quit();
+
+	return 0;
+
+}
+*/
 int main(int argc, char *argv[])
 { 
 	if(argc > 2)
@@ -377,4 +403,3 @@ int main(int argc, char *argv[])
 
 	return 0;
 }
-

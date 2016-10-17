@@ -1,8 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "List.h"
-int main(){
+//#include "img.c"
 /*
+int main(){
+
 	struct list *l = empty_list();
 	int array[] = {0,1,2,3};
 	l = list_append(l, array);
@@ -10,7 +11,7 @@ int main(){
 	l = list_append(l, array2);
 	print_list(l);	
 	return 0;
-*/
+
 
 	struct list *l = empty_list();
 	int array2[] = {7,1,2,3};
@@ -23,7 +24,7 @@ int main(){
 	}
 	print_list(l);
 }
-/*
+
 	struct list *l = NULL;
 	int array[] = {1};
 	l = add(l,array);
@@ -32,3 +33,7 @@ int main(){
 	printf("**j = %i \n",**j);
 	printf("j = %i \n", *((*j)->value));
 }*/
+
+int main(int argc, int *argv[]){
+call(argv[1]);
+return 0; }

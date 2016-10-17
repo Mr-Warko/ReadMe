@@ -88,3 +88,14 @@
 					 la reconnaissance des caractère à la fin de la détection des lignes.
 				  -Les coo des lignes et de leurs caractères est affichée dans la 
 					 console au moment de l'execution.
+
+10e update: 2016-10-17
+	AUTHORS: Alexandre.
+
+	List.h: -Ajout de la classe l_list: liste de liste.
+
+	img.c:  -Utilisation de la classe l_list pour avoir les listes de lignes.
+	         Les lignes sont maintenants sauvegardées dans la mémoire 
+	         et on ne les perd plus quand on en créé une nouvelle.
+	
+	Dossier: -Déplacement des fichiers "pixel_operations" dans Traitement_img.
