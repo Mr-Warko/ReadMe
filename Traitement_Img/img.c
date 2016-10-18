@@ -420,20 +420,37 @@ struct l_list *segmentation(SDL_Surface *surface, Uint8 mark){
 /*======================================*/
 /*================main==================*/
 /*======================================*/
-/*
+
 int call(char *file)
 {
+	Uint32 rmask, gmask, bmask, amask; 
+
 	SDL_Surface *surface;
 		
-	SDL_Init(SDL_INIT_VIDEO);
+	init_sdl();
 
 	surface = load_image(file);
 	
 	SDL_LockSurface(surface);	
-	
+
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+    rmask = 0xff000000;
+    gmask = 0x00ff0000;
+    bmask = 0x0000ff00;
+    amask = 0x000000ff;
+#else
+    rmask = 0x000000ff;
+    gmask = 0x0000ff00;
+    bmask = 0x00ff0000;
+    amask = 0xff000000;
+#endif
+
+
 	binarize(surface);
 	
-	segmentation(surface, 255);
+	struct l_list *lines =	segmentation(surface, 255);
+	dlCharAsBmp(surface,lines,file,rmask,gmask,bmask,amask);
+	l_list_destroy(lines);
 
 	SDL_UnlockSurface(surface);
 
@@ -444,9 +461,9 @@ int call(char *file)
 	SDL_Quit();
 
 	return 0;
-
 }
-*/
+/*
+
 int main(int argc, char *argv[])
 {
 	Uint32 rmask, gmask, bmask, amask; 
@@ -495,3 +512,4 @@ int main(int argc, char *argv[])
 
 	return 0;
 }
+*/

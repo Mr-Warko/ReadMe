@@ -2,10 +2,12 @@
  
 CC=gcc
  
-CPPFLAGS= `pkg-config --cflags sdl`
+CPPFLAGS= `pkg-config --cflags sdl` `pkg-config gtk+-2.0 --cflags`
+
 CFLAGS= -Wall -Wextra  -std=c99 -O2
 LDFLAGS=
-LDLIBS= `pkg-config --libs sdl` -lSDL_image
+LDLIBS= `pkg-config --libs sdl` -lSDL_image `pkg-config gtk+-2.0 --libs`
+
  
 SRC= 
 OBJ= ${SRC:.c=.o}
