@@ -112,6 +112,10 @@ void list_destroy(struct list *l){
 		l = list_remove_first(l);
 }
 
+/*=========================*/
+/*==========l_list=========*/
+/*=========================*/
+
 struct l_list{
 	struct l_list *next;
 	struct list *value;
@@ -145,7 +149,25 @@ struct l_list *l_list_append(struct l_list *ll,struct list *l){
 		return NULL;
 }
 
+struct l_list *l_list_remove_first(struct l_list *l){
+	struct l_list *first = l;
+	l = l -> next;
+	list_destroy(first->value);
+	free(first);
+	return l;
+}
+
+void l_list_destroy(struct l_list *ll){
+	while (ll)
+		ll = l_list_remove_first(ll);
+}
+
 void print_l_list(struct l_list *ll){
-	for(;ll;ll = ll ->next)
+	size_t i =0;
+	for(;ll;ll = ll->next){
+		size_t l = list_length(ll->value);
+		printf("\nligne numéro: %lu | taille: %lu\n",i,l);
 		print_list(ll->value);
+		i++;
+	}
 }

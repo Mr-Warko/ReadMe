@@ -99,3 +99,13 @@
 	         et on ne les perd plus quand on en créé une nouvelle.
 	
 	Dossier: -Déplacement des fichiers "pixel_operations" dans Traitement_img.
+
+11e update: 2016-10-18
+	AUTHORS: Alexandre.
+
+	List.h: -Ajout de la fonction de destruction de l_list. (Liste de list).
+
+	img.c:  -La fonction segmentation revoie maintenant une l_list.
+	        -Ajout de la fonction d'enregistrement des caractères (dlCharAsBmp).
+	         Cette fonction enregistre l'ensemble des caractères de la l_list 
+	         donnée en argument dans un directory du nom de l'image de base.
