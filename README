@@ -109,3 +109,12 @@
 	        -Ajout de la fonction d'enregistrement des caractères (dlCharAsBmp).
 	         Cette fonction enregistre l'ensemble des caractères de la l_list 
 	         donnée en argument dans un directory du nom de l'image de base.
+
+12e update: 2016-10-18
+        AUTHORS: Clement.
+        Neural.c : -Foward Propagation du Xor, affiche les valeurs du Hidden Layers 
+                   et de l'output, la fonction init prend en paramètre un tableau 
+                   de 4 int({a,b,c,d}, la fonction MultMat qui fait la multiplication
+                   Matricielle (pour appliquer les poids) et la fonction applySigmo
+                   qui applique la fonction sigmoid (1 / 1+e(-z))) sur chaque valeur
+                   de la matrice. 

@@ -93,7 +93,7 @@ void init(int size[]) // size -> length = 3
 }
 int main()
 {
-  int test[4] = {15,15,15,15}; 
+  int test[4] = {3,2,3,1}; //{imput,weigth,weight[0]/hidden,weigth2} 
   init(test);
   return 0;
 } 
