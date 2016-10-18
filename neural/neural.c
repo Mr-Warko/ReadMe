@@ -20,7 +20,7 @@ void MultMat(double** imput,double** weigth, size_t len,size_t len2, double** ar
 }
 double sigmoid(double z)
 {
-  return 1 / (1 +(exp(-z)));
+  return 1 / (1 + exp(-z));
 }
 
 double** applySigmo(double **array, size_t len,size_t len2)
@@ -37,6 +37,39 @@ double** applySigmo(double **array, size_t len,size_t len2)
   return array;
 }
 
+double SigmoPrime(double z)
+{
+  return exp(-z) / ( pow(1 + exp(-z), 2));
+}
+double** costFunction(double** array, double** y,  size_t len, size_t len2)
+{
+  for(size_t i = 0; i < len; ++i)
+  {
+    for(size_t j = 0; j < len2; ++j)
+    {
+      array[i][j] = 0.5 * pow((array[i][j] - y[i][j]),2); 
+    }
+  }
+  return array;
+}
+
+double** Transpose(double** array, size_t len, size_t len2)
+{
+  double**Mat = malloc(len2 * sizeof(double*));
+  for(size_t i = 0; i < len2; ++i)
+  {
+    Mat[i] = malloc(len * sizeof(double));
+    Mat[i][0] = array[0][i];
+  }
+  for(size_t i = 1 ; i < len2; ++i)
+  {
+    for(size_t j = 0; j < len ; ++j)
+    {
+      Mat[j][i] = array[i][j];
+    }
+  }
+return Mat;
+}
 void MatImput(double** imput)  // Imput pour la porte Xor
 {
   imput[0][0] = 0.0;
