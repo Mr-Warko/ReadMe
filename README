@@ -118,3 +118,10 @@
                    Matricielle (pour appliquer les poids) et la fonction applySigmo
                    qui applique la fonction sigmoid (1 / 1+e(-z))) sur chaque valeur
                    de la matrice. 
+
+13e update: 2016-10-21
+	AUTHORS: Alexandre.
+
+	img.c:	-Mise a jour de la manière des enregistrements des images. 
+	
+	pre_traitement.h: -Ajoutd'algorithmes de prétraitement tel que otsu.

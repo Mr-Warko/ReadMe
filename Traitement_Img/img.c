@@ -1,6 +1,5 @@
 #include <err.h>
 #include <string.h>
-
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -9,12 +8,10 @@
 
 #include "pixel_operations.c"
 #include "List.h"
-/* Le tout effectue un binarize (supprime les couleurs) sur une image au format
-	 bmp donnée en argument. */
-
+#include "preTraitement.h"
 
 /*======================================*/
-/*==============Utilitaire==============*/
+/*================Usefull===============*/
 /*======================================*/
 
 
@@ -83,8 +80,9 @@ SDL_Surface* display_image(SDL_Surface *img) {
 
 char *cutExtension(char *file){
 	size_t len = strlen(file);
-	char *dir = malloc(len * sizeof(char)-4);
-	for(size_t i = 0; i < len -4; i ++)
+	char *dir = malloc(len * sizeof(char)-3);
+	size_t i;
+	for(i = 0; i < len -3; i ++)
 		*(dir + i) = *(file + i);
 	return dir;	
 }
@@ -104,19 +102,16 @@ void dlCharAsBmp(SDL_Surface *img, struct l_list *lines, char *file,
 	char *dir = cutExtension(file);
 	printf("dir: %s \n",dir);
 
-	if(mkdir(dir,0777) < 0){
-	//	fprintf(stderr, "Can't create the directory.i\n");
-//		exit(1);
-  }
-
-
+	mkdir(dir,0777);
+	
 	for(;lines; lines = lines->next){
 		struct list *line = lines->value;
 		line = line->next;
+
 		for(;line;line = line->next){
 			int *cooChar = line->value;
-		
-			char fileName[90];
+
+			char fileName[strlen(dir) + 8];
 			sprintf(fileName,"%s/char%i.bmp",dir,charNb);	
 		
 			int width = (*(cooChar+2) - *cooChar)+1;
@@ -131,7 +126,6 @@ void dlCharAsBmp(SDL_Surface *img, struct l_list *lines, char *file,
 
 			for(int y = *(cooChar+1); y <= *(cooChar+3); y++){
 				for(int x = *cooChar; x <= *(cooChar+2); x++){
-					//printf("W: %lu | H: %lu | x: %lu | y: %lu\n",width,height,x,y);
 					pixel = getpixel(img, x,y);
 					SDL_GetRGB(pixel, img->format, &r, &g, &b);
 
@@ -155,18 +149,18 @@ void dlCharAsBmp(SDL_Surface *img, struct l_list *lines, char *file,
 /*======================================*/
 /*=============grayScale================*/
 /*======================================*/
-
+/*
 
 Uint8 grayscale(Uint8 r, Uint8 g, Uint8 b)
 {
 	return (r + g + b)/3;
 }
-
+*/
 /*======================================*/
 /*==============Binarize================*/
 /*======================================*/
-
-void binarize(SDL_Surface *surface){
+/*
+void binarize(SDL_Surface *surface, int threshold){
 
 	Uint32 pixel;
 	Uint8 r,g,b,a;
@@ -180,7 +174,7 @@ void binarize(SDL_Surface *surface){
 			SDL_GetRGBA(pixel, surface->format, &r, &g, &b, &a);
 			
 			Uint8 gray = grayscale(r,g,b);
-			if(gray <= 127)
+			if(gray <= threshold)
 			{
 				r = 0;
 				g = 0;
@@ -200,7 +194,7 @@ void binarize(SDL_Surface *surface){
 	}
 
 }
-
+*/
 /*======================================*/
 /*==============test_dfs================*/
 /*======================================*/
@@ -329,8 +323,8 @@ void dfs_surface(SDL_Surface *surface, int x, int y, Uint8 mark, int cooChar[]){
 	SDL_GetRGBA(pixel, surface->format, &r, &g, &b, &a);
 
 	r = mark;
-	g = 100;
-	b = 100;
+	g = 0;
+	b = 0;
 
 	pixel = SDL_MapRGBA(surface->format, r, g, b, a);
 	putpixel(surface, x, y, pixel);
@@ -372,8 +366,8 @@ struct l_list *segmentation(SDL_Surface *surface, Uint8 mark){
 	Uint32 pixel;
 	Uint8 r,g,b,a;
 	
-	struct l_list *lines = empty_l_list(); //Création liste de lignes.
-	struct list *line = empty_list(); //Création list des caractères
+	struct l_list *lines = empty_l_list(); //Creates a line list.
+	struct list *line = empty_list(); //Create a char list.
 	
 	for(y = 0; y < surface-> h; ++y){
 		old_verrou = new_verrou; new_verrou = 0;
@@ -387,30 +381,26 @@ struct l_list *segmentation(SDL_Surface *surface, Uint8 mark){
 			}
 			if(test_dfs(surface,x,y,0)){
 				/* {xMin, yMin, xMax, yMax} */
-				int *cooChar = malloc(4 * sizeof(int));//Alloue l'EM au caractère
+				int *cooChar = malloc(4 * sizeof(int));
 				*cooChar = x; *(cooChar+1) =y; *(cooChar+2) = x; *(cooChar+3) = y;
 				dfs_surface(surface, x, y, mark, cooChar);
 
-				line = insert(line,cooChar);//Ajout de cooChar dans la liste triée line.
-				y = *(cooChar + 1); //Optimisation de la boucle.
+				line = insert(line,cooChar);//Insert char and sort it
+				y = *(cooChar + 1);
 			}
 		}
 	
-		//old verrou $$ !new_verrou => fin de ligne
+		//Detects the passage from a black pixel to a white one.
 		if (old_verrou && !new_verrou){
-			int *cooLine = malloc(4 * sizeof(int));//Alloue l'EM nécessaire à la ligne
+			int *cooLine = malloc(4 * sizeof(int));			
 			
-			for(int yolo = 0; yolo < 4; yolo++) //Besoin de qqc pour comparer
+			for(int yolo = 0; yolo < 4; yolo++) //Need something to compare.
 				*(cooLine + yolo) = *((line->value)+yolo);
 			
 			getCooLine(cooLine,line);
-			line = add(line,cooLine);//Met en 1e place les coo de la ligne.
+			line = add(line,cooLine);//Put on the top of the line its coo.
 
-			struct list *line2 = line;
-			for(;line2;line2 = line2->next)
-				trace_rect(surface,line2->value);
-			
-			lines = l_list_append(lines,line);//Append la ligne dans la list de lignes
+			lines = l_list_append(lines,line);//Put the char list in the line list.
 			line = empty_list();
 		}
 	}
@@ -420,50 +410,6 @@ struct l_list *segmentation(SDL_Surface *surface, Uint8 mark){
 /*======================================*/
 /*================main==================*/
 /*======================================*/
-
-int call(char *file)
-{
-	Uint32 rmask, gmask, bmask, amask; 
-
-	SDL_Surface *surface;
-		
-	init_sdl();
-
-	surface = load_image(file);
-	
-	SDL_LockSurface(surface);	
-
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-    rmask = 0xff000000;
-    gmask = 0x00ff0000;
-    bmask = 0x0000ff00;
-    amask = 0x000000ff;
-#else
-    rmask = 0x000000ff;
-    gmask = 0x0000ff00;
-    bmask = 0x00ff0000;
-    amask = 0xff000000;
-#endif
-
-
-	binarize(surface);
-	
-	struct l_list *lines =	segmentation(surface, 255);
-	dlCharAsBmp(surface,lines,file,rmask,gmask,bmask,amask);
-	l_list_destroy(lines);
-
-	SDL_UnlockSurface(surface);
-
-	display_image(surface);
-
-	SDL_FreeSurface(surface);
-
-	SDL_Quit();
-
-	return 0;
-}
-/*
-
 int main(int argc, char *argv[])
 {
 	Uint32 rmask, gmask, bmask, amask; 
@@ -495,13 +441,30 @@ int main(int argc, char *argv[])
     amask = 0xff000000;
 #endif
 
+	Uint8 histo[256];
+	histogram(surface,histo);
 
-	binarize(surface);
+	int threshold = otsu(histo,surface->w * surface->h);
+	binarize(surface, threshold);
 	
-	struct l_list *lines =	segmentation(surface, 255);
-	dlCharAsBmp(surface,lines,file,rmask,gmask,bmask,amask);
-	l_list_destroy(lines);
+	struct l_list *lines =	segmentation(surface, 1);
+  dlCharAsBmp(surface,lines,file,rmask,gmask,bmask,amask);
 
+	for(;lines;lines = lines->next){
+		
+		struct list *line2 = lines->value;
+		for(;line2;line2 = line2->next)
+			trace_rect(surface,line2->value);
+	}
+
+	l_list_destroy(lines);
+	
+	char *dir = cutExtension(file);
+	char imgName[strlen(dir) + 8];
+	sprintf(imgName,"%s/_seg.bmp",dir);	
+	
+	SDL_SaveBMP(surface,imgName);
+	printf("%s\n",imgName);
 	SDL_UnlockSurface(surface);
 
 	display_image(surface);
@@ -512,4 +475,3 @@ int main(int argc, char *argv[])
 
 	return 0;
 }
-*/
